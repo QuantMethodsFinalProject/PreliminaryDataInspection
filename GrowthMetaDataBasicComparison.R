@@ -146,7 +146,7 @@ for(i in 1:21){
 
 
 
-### plot nls for each river
+# plot nls for each river
 
 names <- levels(dat$River_name)
 
@@ -268,8 +268,7 @@ out <- jags(data = data, inits = inits, parameters.to.save = params1,
             n.burnin = nb)
 
 ####Plot of different model outputs
-plot(dat$Age, dat$TL, pch=16,xlab='Age (yrs)',ylab='Length (mm)', cex=0.5)
-curve(vbTyp(x,coef(fitTyp)),from=0,to=30,add=TRUE,lwd=3, col="indianred2",lty=1 )
+#need to extract coefs from Bayes output
 a<-out$BUGSoutput$mean$Linf
 b<-out$BUGSoutput$mean$k
 c<-out$BUGSoutput$mean$t0
@@ -277,8 +276,47 @@ bayescoef<-c(a,b,c)
 names(bayescoef)[1] <- "Linf" #need rownames?
 names(bayescoef)[2] <- "k"
 names(bayescoef)[3] <- "t0"
-curve(vbTyp(x,bayescoef),from=0,to=30,lwd=3,add=TRUE, col="blue")
-legend(12,550, c("nls", "Bayes"), lty=c(2, 1), lwd=c(3,3), col=c("indianred2", "blue"),  box.lwd = 1,box.col = "white",bg = "white")
-#to be continued
 
 ##Tys plotting method 
+
+res <- 6
+name_figure <- "BayesVonBert.png"
+png(filename = name_figure, height = 500*res, width = 800*res, res=72*res)
+def.par <- par(no.readonly = TRUE)
+
+
+size.labels = 1
+size.text = 1
+axissize <- 1
+x.label = 'Age (yrs)'
+y.label = "Length (mm)"
+
+par(mar=c(0.0,0.1,0.1,0.1),oma=c(3,3.5,0,1), mai=c(0.0,0.05,0.05,0))
+
+
+plot(dat$Age, dat$TL, pch=16, cex=0.5, ylim=c(min(dat$TL,na.rm=T),
+     max(dat$TL,na.rm=T)),xlim=c(min(dat$Age, na.rm=T),max(dat$Age, na.rm=T)), 
+     axes=F, ylab='', xlab='', type='n')
+
+points(jitter(dat$Age), dat$TL, cex=0.8, pch=16,col='black' )
+
+
+#add nls curve
+curve(vbTyp(x,coefs[i,]),from=-2,to=max(dat$Age)+ 2,add=TRUE,lwd=3, col="indianred2")
+
+#add bayes curve
+curve(vbTyp(x,bayescoef),from=0,to=max(dat$Age)+ 2,lwd=3,add=TRUE, col="blue")
+
+
+#legend
+legend(25,250, c("nls", "Bayes"), lty=c(1, 1), lwd=c(3,3), col=c("indianred2", "blue"),  
+       box.lwd = 1,box.col = "white",bg = "white", cex=1.5)
+
+
+#axes 
+axis(side=1,cex.axis=axissize , mgp=c(1,0.3,0),tck= -0.01)
+axis(side=2,cex.axis=axissize , mgp=c(1,0.3,0),tck= -0.01, las=1)
+box()
+
+par(def.par)
+dev.off()
